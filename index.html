@@ -5,177 +5,255 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>양치 인증 앱</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
+    :root{
+      --APP-W: 1080px;
+      --APP-H: 1418px;
+      --bg1: #74b9ff;
+      --bg2: #0984e3;
+      --ink: #2d3436;
+      --sub: #636e72;
+      --ok1: #00b894;
+      --ok2: #00a085;
+      --acc: #fd79a8;
+    }
+    /* 화면 중앙 정렬 + 배경 */
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+      overflow: hidden; /* 바깥 스크롤 방지 */
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #74b9ff, #0984e3);
-      min-height: 100vh; display:flex; align-items:center; justify-content:center; padding:20px;
     }
+    /* 스케일 래퍼: 어떤 화면에서도 비율 유지 */
+    .stage {
+      width: 100vw;
+      height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+    /* 실제 앱 캔버스: 1080 x 1418 고정 */
+    #app {
+      width: var(--APP-W);
+      height: var(--APP-H);
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 24px 50px rgba(0,0,0,0.15);
+      overflow: hidden; /* 내부에서만 스크롤 관리 */
+      position: relative;
+      transform-origin: top left; /* JS 스케일 기준점 */
+    }
+
+    /* 내부 레이아웃 */
     .container {
-      background:#fff; border-radius:20px; box-shadow:0 20px 40px rgba(0,0,0,0.1);
-      padding:30px; width:100%; max-width:420px; text-align:center;
-    }
-    .header { margin-bottom:30px; }
-    .header h1 { color:#2d3436; font-size:28px; margin-bottom:10px; }
-    .header .emoji { font-size:48px; margin-bottom:15px; display:block; }
-
-    .form-group { margin-bottom:20px; text-align:left; }
-    .form-group label { display:block; margin-bottom:8px; color:#2d3436; font-weight:600; }
-    .form-group select, .form-group input {
-      width:100%; padding:12px; border:2px solid #ddd; border-radius:10px; font-size:16px;
-      transition:border-color .3s;
-    }
-    .form-group select:focus, .form-group input:focus { outline:none; border-color:#74b9ff; }
-
-    .inline-row { display:flex; gap:10px; }
-    .inline-row .form-group { flex:1; margin-bottom:0; }
-
-    .btn {
-      background:linear-gradient(135deg, #00b894, #00a085); color:#fff; border:none; padding:14px 24px;
-      border-radius:25px; font-size:16px; font-weight:700; cursor:pointer; transition:all .25s;
-      width:100%; margin-top:16px;
-    }
-    .btn:hover { transform:translateY(-2px); box-shadow:0 10px 20px rgba(0,184,148,0.3); }
-    .btn:disabled { background:#ddd; cursor:not-allowed; transform:none; box-shadow:none; }
-    .btn-secondary { background:#636e72; }
-    .btn-pink { background:#fd79a8; }
-    .btn-pink:hover { background:#e84393; }
-
-    .camera-container { display:none; flex-direction:column; align-items:center; gap:20px; }
-    .camera-placeholder {
-      width:300px; height:300px; background:#f8f9fa; border:3px dashed #74b9ff;
-      border-radius:15px; display:flex; align-items:center; justify-content:center;
-      flex-direction:column; color:#636e72; font-size:16px; padding:16px; text-align:center;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      padding: 40px 48px;
     }
 
-    .student-info {
-      background:#f8f9fa; padding:15px; border-radius:10px; margin-bottom:10px; display:none;
-      width:100%; text-align:left;
-    }
-    .student-info h3 { color:#2d3436; margin-bottom:5px; }
-    .timestamp { color:#636e72; font-size:14px; }
+    .header { margin-bottom: 28px; text-align: center; }
+    .header h1 { color: var(--ink); font-size: 40px; margin: 6px 0 6px; }
+    .header .emoji { font-size: 64px; display: block; }
+    .header p { color: var(--ink); opacity: .85; }
 
-    .success-message {
-      display:none; background:#00b894; color:#fff; padding:16px; border-radius:12px; margin-top:10px;
-      animation:fadeIn .5s ease-in;
-      width:100%;
+    .form-group { margin-bottom: 20px; }
+    .form-label { display:block; margin-bottom:10px; color:var(--ink); font-weight:700; font-size:18px; }
+    select, input[type="text"]{
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e6e8ec;
+      border-radius: 12px;
+      font-size: 18px;
+      outline: none;
+      transition: border-color .25s ease;
+      background: #fff;
     }
-    @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+    select:focus, input[type="text"]:focus { border-color: var(--bg1); }
 
-    .records-section { margin-top:24px; padding-top:20px; border-top:2px solid #f1f2f6; display:none; }
-    .records-list {
-      max-height:220px; overflow-y:auto; background:#f8f9fa; border-radius:10px; padding:10px; margin-top:10px;
-    }
-    .record-item {
-      padding:10px; background:#fff; border-radius:8px; margin-bottom:8px; display:flex; justify-content:space-between;
-      align-items:center; font-size:14px;
-    }
-    .badge {
-      display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:700;
-      background:#ffeaa7; color:#636e72; margin-left:6px;
-    }
-    .badge-green { background:#55efc4; color:#006b4f; }
+    .inline-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
     .helper {
-      margin-top:8px; font-size:12px; color:#2d3436; background:#eaf4ff; padding:8px 10px; border-radius:8px; text-align:left;
+      margin-top: 6px; font-size: 14px; color: var(--ink);
+      background:#eaf4ff; padding: 12px 14px; border-radius: 10px;
+      line-height: 1.4;
     }
 
-    @media (max-width:480px){
-      .container{ padding:20px; margin:10px; }
-      .camera-placeholder{ width:260px; height:260px; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, var(--ok1), var(--ok2));
+      color: #fff; border: none; padding: 16px 24px;
+      border-radius: 999px; font-size: 18px; font-weight: 800;
+      cursor: pointer; transition: transform .2s, box-shadow .2s;
+      width: 100%;
     }
+    .btn:hover { transform: translateY(-2px); box-shadow:0 12px 24px rgba(0,184,148,.25); }
+    .btn:disabled { background:#d6d8db; cursor:not-allowed; transform:none; box-shadow:none; }
+    .btn-secondary { background:#636e72; }
+    .btn-pink { background: var(--acc); }
+    .btn-pink:hover { background:#e84393; }
+
+    .camera-container { display:none; flex-direction:column; gap: 18px; }
+
+    .student-info {
+      background:#f7f9fb; padding:16px 18px; border-radius:12px; display:none;
+    }
+    .student-info h3 { margin:0 0 6px; color:var(--ink); font-size: 22px; }
+    .timestamp { margin:0; color:var(--sub); font-size:16px; }
+
+    .camera-placeholder {
+      width: 100%;
+      max-width: 520px;
+      height: 380px;
+      margin: 0 auto;
+      background:#f8f9fa;
+      border: 3px dashed var(--bg1);
+      border-radius: 16px;
+      display:flex; align-items:center; justify-content:center; flex-direction:column;
+      color: var(--sub); text-align: center; padding: 16px;
+    }
+
+    .success-message {
+      display:none; background:var(--ok1); color:#fff; padding:16px; border-radius:12px;
+      animation:fadeIn .4s ease-in;
+    }
+    @keyframes fadeIn { from {opacity:0; transform:translateY(6px);} to {opacity:1; transform:translateY(0);} }
+
+    .records-section {
+      margin-top: 16px; padding-top: 18px; border-top: 2px solid #f1f2f6;
+      display:none;
+    }
+    .records-list {
+      /* 고정 화면 안에서만 스크롤되도록 높이 확보 */
+      max-height: 360px;
+      overflow-y: auto;
+      background:#f7f9fb; border-radius:12px; padding:10px; margin-top:10px;
+    }
+    .record-item {
+      padding:10px 12px; background:#fff; border-radius:10px; margin-bottom:8px;
+      display:flex; justify-content:space-between; align-items:center; font-size:16px;
+    }
+    .badge {
+      display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:800;
+      background:#ffeaa7; color:#5c6b70; margin-left:6px;
+    }
+    .badge-green { background:#55efc4; color:#005d49; }
+
+    /* 내부 섹션 간격 튜닝 */
+    .section { margin-bottom: 14px; }
+    .spacer { height: 8px; }
+
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <span class="emoji">🦷</span>
-      <h1>양치 인증 앱</h1>
-      <p>점심시간 양치 체크!</p>
-    </div>
-
-    <!-- 등록 폼 -->
-    <div id="registration-form">
-      <div class="inline-row">
-        <div class="form-group">
-          <label for="grade">학년 선택</label>
-          <select id="grade" aria-label="학년 선택">
-            <option value="">학년을 선택하세요</option>
-            <option value="1">1학년</option>
-            <option value="2">2학년</option>
-            <option value="3">3학년</option>
-          </select>
+  <div class="stage">
+    <div id="app">
+      <div class="container">
+        <div class="header section">
+          <span class="emoji">🦷</span>
+          <h1>양치 인증 앱</h1>
+          <p>점심시간 양치 체크!</p>
         </div>
-        <div class="form-group">
-          <label for="class">반 선택</label>
-          <select id="class" aria-label="반 선택">
-            <option value="">반을 선택하세요</option>
-            <option value="1">1반</option>
-            <option value="2">2반</option>
-            <option value="3">3반</option>
-            <option value="4">4반</option>
-            <option value="5">5반</option>
-          </select>
+
+        <!-- 등록 폼 -->
+        <div id="registration-form" class="section">
+          <div class="inline-row">
+            <div class="form-group">
+              <label class="form-label" for="grade">학년 선택</label>
+              <select id="grade" aria-label="학년 선택">
+                <option value="">학년을 선택하세요</option>
+                <option value="1">1학년</option>
+                <option value="2">2학년</option>
+                <option value="3">3학년</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="class">반 선택</label>
+              <select id="class" aria-label="반 선택">
+                <option value="">반을 선택하세요</option>
+                <option value="1">1반</option>
+                <option value="2">2반</option>
+                <option value="3">3반</option>
+                <option value="4">4반</option>
+                <option value="5">5반</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="name">이름 선택</label>
+            <select id="name" aria-label="이름 선택">
+              <option value="">이름을 선택하세요</option>
+            </select>
+          </div>
+
+          <div class="helper">
+            • 등록 후 <strong>AR 필터</strong>는 새 탭으로 열립니다. 촬영 후 이 페이지로 돌아와 <em>양치 인증 완료</em>를 눌러 주세요.<br/>
+            • 점심시간(기본 11:30–13:30) 외에는 경고가 표시됩니다.
+          </div>
+
+          <div class="spacer"></div>
+          <button class="btn" id="register-btn">등록하기</button>
         </div>
-      </div>
 
-      <div class="form-group" style="margin-top:16px;">
-        <label for="name">이름 선택</label>
-        <select id="name" aria-label="이름 선택">
-          <option value="">이름을 선택하세요</option>
-        </select>
-      </div>
+        <!-- 카메라 안내/버튼 -->
+        <div class="camera-container section" id="camera-section" aria-live="polite">
+          <div class="student-info" id="student-info">
+            <h3 id="student-display"></h3>
+            <p class="timestamp" id="current-time"></p>
+          </div>
 
-      <div class="helper">
-        • 등록 후 <strong>AR 필터</strong>는 새 탭으로 열립니다. 촬영 후 이 페이지로 돌아와 <em>양치 인증 완료</em>를 눌러 주세요.<br/>
-        • 점심시간(기본 11:30–13:30) 외에는 경고가 표시됩니다.
-      </div>
+          <div class="camera-placeholder">
+            <div id="camera-placeholder-content">
+              <div style="font-size:56px;">📸</div>
+              <p style="margin-top:8px;">AR 필터 페이지는 보안 정책으로</p>
+              <p>이 페이지 안에 직접 표시할 수 없어요.</p>
+              <button class="btn" id="open-ar-btn" style="margin-top:12px;">AR 필터 열기</button>
+              <p style="font-size:14px;margin-top:8px; line-height:1.4;">
+                촬영 후 이 탭으로 돌아와 아래의 <strong>양치 인증 완료!</strong>를 눌러 기록하세요.
+              </p>
+            </div>
+          </div>
 
-      <button class="btn" id="register-btn">등록하기</button>
-    </div>
+          <button class="btn" id="complete-btn">양치 인증 완료!</button>
+          <button class="btn btn-secondary" id="back-btn">돌아가기</button>
 
-    <!-- 카메라 안내/버튼 -->
-    <div class="camera-container" id="camera-section" aria-live="polite">
-      <div class="student-info" id="student-info">
-        <h3 id="student-display"></h3>
-        <p class="timestamp" id="current-time"></p>
-      </div>
-
-      <div class="camera-placeholder">
-        <div id="camera-placeholder-content">
-          <div style="font-size:44px;">📸</div>
-          <p style="margin-top:8px;">AR 필터 페이지는 보안 정책으로</p>
-          <p>이 페이지 안에 직접 표시할 수 없어요.</p>
-          <button class="btn" id="open-ar-btn" style="margin-top:12px;">AR 필터 열기</button>
-          <p style="font-size:12px;margin-top:8px; line-height:1.4;">
-            촬영 후 이 탭으로 돌아와 아래의 <strong>양치 인증 완료!</strong>를 눌러 기록하세요.
-          </p>
+          <div class="success-message" id="success-message">
+            <h3 style="margin:0 0 6px;">🎉 양치 인증 완료!</h3>
+            <p style="margin:0;">건강한 치아를 위해 노력하는 당신이 멋져요!</p>
+          </div>
         </div>
+
+        <!-- 기록 섹션 -->
+        <div class="records-section section" id="records-section">
+          <h3 style="margin:0;">오늘의 양치 기록</h3>
+          <div class="records-list" id="records-list"></div>
+          <div class="spacer"></div>
+          <button class="btn btn-pink" id="export-btn">엑셀로 내보내기</button>
+        </div>
+
+        <!-- 하단 여백 보정 -->
+        <div style="flex:1 1 auto;"></div>
       </div>
-
-      <button class="btn" id="complete-btn">양치 인증 완료!</button>
-      <button class="btn btn-secondary" id="back-btn">돌아가기</button>
-
-      <div class="success-message" id="success-message">
-        <h3>🎉 양치 인증 완료!</h3>
-        <p>건강한 치아를 위해 노력하는 당신이 멋져요!</p>
-      </div>
-    </div>
-
-    <!-- 기록 섹션 -->
-    <div class="records-section" id="records-section">
-      <h3>오늘의 양치 기록</h3>
-      <div class="records-list" id="records-list"></div>
-      <button class="btn btn-pink" id="export-btn">엑셀로 내보내기</button>
     </div>
   </div>
 
   <script>
+    // ===== 화면 스케일(1080x1418 고정 캔버스) =====
+    function fitToScreen() {
+      const app = document.getElementById('app');
+      const W = 1080, H = 1418;
+      const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+      app.style.transform = `scale(${scale})`;
+      // 스케일 후 중앙정렬을 위해 stage는 grid-center 사용
+    }
+    window.addEventListener('load', fitToScreen);
+    window.addEventListener('resize', fitToScreen);
+
     // ===== 설정값(점심시간) =====
     const LUNCH_START = { hour: 11, minute: 30 };
     const LUNCH_END   = { hour: 13, minute: 30 };
 
-    // ===== 학생 명렬표 (학년-반 => 이름 배열) =====
+    // ===== 학생 명렬표 =====
     const studentList = {
       // 1학년
       "1-1": ["강태유","김강율","김강현","김민준","김민호","김범서","김종현","김지섭","김태현","노유하","박서진","박석환","박현빈","송지후","옥채운","이규빈","이기준","이윤건","이인성","이재현","이후현","임라원","임승유","전승민","정교운","조용우","조하랑","한승빈","황지후"],
@@ -183,13 +261,11 @@
       "1-3": ["고현성","곽태오","김도원","김성규","김성탁","김은호","김진욱","나석민","박도현","박성윤","박준용","방지훈","성민기","신유로","양지웅","엄용준","원연호","윤태웅","이승엽","이예찬","이정림","이태혁","전민찬","정세훈","조범준","채민우","탁동현","한승호","한정우","황윤성"],
       "1-4": ["공범준","권우진","김도훈","김은우","김찬현","김한준","류지훈","모현성","민동휘","박승혁","박용준","배성호","봉건두","신율","안유찬","윤준상","윤태욱","이예준","이준","이지한","이하람","임주원","장민성","장은수","정재원","조민규","채민준","최종윤","한지용","허준혁"],
       "1-5": ["곽선우","김동하","김민성","김민준","김시후","김태현","남훈희","문진우","문현빈","박재현","박준범","박현석","백서우","안주상","유준서","윤준영","윤진규","이상운","이승유","이영준","이준엽","이지안","장동우","정정윤","정현우","조승민","최우현","최재영","허동혁","허신우"],
-
       // 2학년
       "2-1": ["강서준","곽수민","김나울","김로운","김상율","김선우","김윤찬","김태양","마경진","문찬원","박동후","박민우","배석원","배시우","송해성","안유준","오주환","윤여서","윤예준","이경민","이민준","이은호","이준혁","정효유","조연우","조우형","최명준","최민준","최승현","이찬수"],
       "2-2": ["김다온","김민준","김민찬","김진하","김태훈","김하성","문준영","박순호","박윤승","박은평","박인서","박정후","송금성","신동현","신정호","염승빈","유지호","이교준","이승현","이정민","이태민","임건형","임동건","임지후","임호영","정영로","정찬영","주석현","한현석"],
       "2-3": ["강대현","구정윤","김규민","김도현","김동규","김민준","김이도","김태훈","박정연","박정호","박주현","서동훈","신주환","심재희","안민우","엄상준","염승호","오윤택","오준택","용태윤","유지호","이강","이서윤","이석현","이재승","이현석","전도진","최선우","최재민","한윤제"],
       "2-4": ["강현우","구민혁","김건희","김남우","김민준","김이삭","김현성","노연호","박건우","박예찬","백승민","송시훈","안지민","오건우","용찬중","유준서","윤상호","이승우","이주원","이주현","이현비","이희우","임성진","장은혁","장정우","정우진","정하준","조현욱","차규호","홍준호"],
-
       // 3학년
       "3-1": ["고규영","권도현","김건민","김도윤","김예송","김준엽","김진우","김진호","김하준","명길민","모지성","박주원","박태현","박효민","소재원","송유건","이동훈","이민호","이윤서","이준영","이현성","이효준","임세진","장철진","전성윤","정하진","최건호","추성보"],
       "3-2": ["강경덕","강신우","강지원","고대영","길하진","김도현","김동현","김민준","김민찬","김성민","김지한","박민형","서준서","선후성","심을지","심지후","우진","이강헌","이범준","이태건","임은서","장건","전지호","정동규","정지호","한인수","황현서"],
@@ -211,11 +287,9 @@
       const cur   = h * 60 + m;
       return cur >= start && cur <= end;
     }
-
     function saveRecords() {
       localStorage.setItem('brushingRecords', JSON.stringify(brushingRecords));
     }
-
     function updateCurrentTime() {
       const now = new Date();
       const timeString = now.toLocaleString('ko-KR', {
@@ -224,7 +298,6 @@
       const lunchFlag = isWithinLunch(now) ? '🍽️ 점심시간' : '⏰ 점심시간 외';
       document.getElementById('current-time').textContent = `${lunchFlag} - ${timeString}`;
     }
-
     function updateRecordsList() {
       const recordsList = document.getElementById('records-list');
       const today = new Date().toLocaleDateString('ko-KR');
@@ -234,7 +307,6 @@
         recordsList.innerHTML = '<p style="text-align:center;color:#636e72;">오늘 기록이 없습니다.</p>';
         return;
       }
-
       recordsList.innerHTML = todayRecords.map(r => `
         <div class="record-item">
           <span>
@@ -254,9 +326,7 @@
       const classNum = document.getElementById('class').value;
       const nameSelect = document.getElementById('name');
 
-      // 초기화
       nameSelect.innerHTML = '<option value="">이름을 선택하세요</option>';
-
       if (grade && classNum) {
         const key = `${grade}-${classNum}`;
         const names = studentList[key] || [];
@@ -274,12 +344,10 @@
       const grade = document.getElementById('grade').value.trim();
       const classNum = document.getElementById('class').value.trim();
       const name = document.getElementById('name').value.trim();
-
       if (!grade || !classNum || !name) {
         alert('학년, 반, 이름을 모두 선택해주세요!');
         return;
       }
-
       currentStudent = { grade, class: classNum, name };
 
       // 폼 숨기고 카메라 섹션 표시
@@ -287,14 +355,12 @@
       document.getElementById('camera-section').style.display = 'flex';
       document.getElementById('student-info').style.display = 'block';
 
-      // 학생 정보/시간 표시
       document.getElementById('student-display').textContent =
         `${currentStudent.grade}학년 ${currentStudent.class}반 ${currentStudent.name}`;
       updateCurrentTime();
     }
 
     function openAR() {
-      // 같은 탭 이동을 원하면 window.location.href 사용
       window.open(
         'https://www.apoc.day/content/95db481c-d487-46b4-b0f1-a1aa6b484eb7',
         '_blank',
@@ -308,7 +374,6 @@
         const proceed = confirm('지금은 점심시간이 아닙니다. 그래도 인증을 기록할까요?');
         if (!proceed) return;
       }
-
       const record = {
         ...currentStudent,
         timestamp: now.toISOString(),
@@ -316,7 +381,6 @@
         time: now.toLocaleTimeString('ko-KR'),
         lunchWindow: isWithinLunch(now) ? 'Y' : 'N'
       };
-
       brushingRecords.push(record);
       saveRecords();
 
@@ -324,15 +388,13 @@
       document.getElementById('records-section').style.display = 'block';
       updateRecordsList();
 
-      setTimeout(() => { goBack(); }, 3000);
+      setTimeout(() => { goBack(); }, 2800);
     }
 
     function goBack() {
-      // 카메라 섹션 숨기고 성공 메시지 숨김
       document.getElementById('camera-section').style.display = 'none';
       document.getElementById('success-message').style.display = 'none';
 
-      // 폼 다시 표시 + 초기화
       document.getElementById('registration-form').style.display = 'block';
       document.getElementById('grade').value = '';
       document.getElementById('class').value = '';
@@ -350,28 +412,25 @@
       brushingRecords.forEach(r => {
         csvContent += `${r.date},${r.time},${r.grade}학년,${r.class}반,${r.name},${r.lunchWindow || ''}\n`;
       });
-
       const blob = new Blob(["\uFEFF" + csvContent], { type:'text/csv;charset=utf-8;' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      // YYYY-MM-DD 형식 파일명
       link.download = `양치기록_${new Date().toISOString().slice(0,10)}.csv`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     }
 
-    // ===== 이벤트 바인딩 =====
+    // 이벤트 바인딩
     document.getElementById('grade').addEventListener('change', updateNameOptions);
     document.getElementById('class').addEventListener('change', updateNameOptions);
-
     document.getElementById('register-btn').addEventListener('click', registerStudent);
     document.getElementById('open-ar-btn').addEventListener('click', openAR);
     document.getElementById('complete-btn').addEventListener('click', takePhoto);
     document.getElementById('back-btn').addEventListener('click', goBack);
     document.getElementById('export-btn').addEventListener('click', exportToExcel);
 
-    // ===== 초기 로드 =====
+    // 초기 로드
     window.addEventListener('load', () => {
       if (brushingRecords.length > 0) {
         document.getElementById('records-section').style.display = 'block';
