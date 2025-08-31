@@ -238,205 +238,238 @@
   </div>
 
   <script>
-    // ===== 화면 스케일(1080x1418 고정 캔버스) =====
-    function fitToScreen() {
-      const app = document.getElementById('app');
-      const W = 1080, H = 1418;
-      const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
-      app.style.transform = `scale(${scale})`;
-      // 스케일 후 중앙정렬을 위해 stage는 grid-center 사용
+  // ===== 화면 스케일(1080x1418 고정 캔버스) =====
+  function fitToScreen() {
+    const app = document.getElementById('app');
+    const W = 1080, H = 1418;
+    const scale = Math.min(window.innerWidth / W, window.innerHeight / H);
+    app.style.transform = `scale(${scale})`;
+  }
+  window.addEventListener('load', fitToScreen);
+  window.addEventListener('resize', fitToScreen);
+
+  // ===== 설정값(점심시간) =====
+  const LUNCH_START = { hour: 11, minute: 30 };
+  const LUNCH_END   = { hour: 13, minute: 30 };
+
+  // ===== 학생 명렬표 =====
+  const studentList = {
+    // 1학년
+    "1-1": ["강태유","김강율","김강현","김민준","김민호","김범서","김종현","김지섭","김태현","노유하","박서진","박석환","박현빈","송지후","옥채운","이규빈","이기준","이윤건","이인성","이재현","이후현","임라원","임승유","전승민","정교운","조용우","조하랑","한승빈","황지후"],
+    "1-2": ["고기훈","김건우","김대건","김민찬","김서환","김승민","김지훈","김형진","남도현","동진호","박민재","박선우","박태성","방수환","배준영","소정우","송재연","송해준","오준석","유도규","이강호","이삭","이유준","임성준","전완영","정명기","조현준","하준우","한인우","황재욱"],
+    "1-3": ["고현성","곽태오","김도원","김성규","김성탁","김은호","김진욱","나석민","박도현","박성윤","박준용","방지훈","성민기","신유로","양지웅","엄용준","원연호","윤태웅","이승엽","이예찬","이정림","이태혁","전민찬","정세훈","조범준","채민우","탁동현","한승호","한정우","황윤성"],
+    "1-4": ["공범준","권우진","김도훈","김은우","김찬현","김한준","류지훈","모현성","민동휘","박승혁","박용준","배성호","봉건두","신율","안유찬","윤준상","윤태욱","이예준","이준","이지한","이하람","임주원","장민성","장은수","정재원","조민규","채민준","최종윤","한지용","허준혁"],
+    "1-5": ["곽선우","김동하","김민성","김민준","김시후","김태현","남훈희","문진우","문현빈","박재현","박준범","박현석","백서우","안주상","유준서","윤준영","윤진규","이상운","이승유","이영준","이준엽","이지안","장동우","정정윤","정현우","조승민","최우현","최재영","허동혁","허신우"],
+    // 2학년
+    "2-1": ["강서준","곽수민","김나울","김로운","김상율","김선우","김윤찬","김태양","마경진","문찬원","박동후","박민우","배석원","배시우","송해성","안유준","오주환","윤여서","윤예준","이경민","이민준","이은호","이준혁","정효유","조연우","조우형","최명준","최민준","최승현","이찬수"],
+    "2-2": ["김다온","김민준","김민찬","김진하","김태훈","김하성","문준영","박순호","박윤승","박은평","박인서","박정후","송금성","신동현","신정호","염승빈","유지호","이교준","이승현","이정민","이태민","임건형","임동건","임지후","임호영","정영로","정찬영","주석현","한현석"],
+    "2-3": ["강대현","구정윤","김규민","김도현","김동규","김민준","김이도","김태훈","박정연","박정호","박주현","서동훈","신주환","심재희","안민우","엄상준","염승호","오윤택","오준택","용태윤","유지호","이강","이서윤","이석현","이재승","이현석","전도진","최선우","최재민","한윤제"],
+    "2-4": ["강현우","구민혁","김건희","김남우","김민준","김이삭","김현성","노연호","박건우","박예찬","백승민","송시훈","안지민","오건우","용찬중","유준서","윤상호","이승우","이주원","이주현","이현비","이희우","임성진","장은혁","장정우","정우진","정하준","조현욱","차규호","홍준호"],
+    // 3학년
+    "3-1": ["고규영","권도현","김건민","김도윤","김예송","김준엽","김진우","김진호","김하준","명길민","모지성","박주원","박태현","박효민","소재원","송유건","이동훈","이민호","이윤서","이준영","이현성","이효준","임세진","장철진","전성윤","정하진","최건호","추성보"],
+    "3-2": ["강경덕","강신우","강지원","고대영","길하진","김도현","김동현","김민준","김민찬","김성민","김지한","박민형","서준서","선후성","심을지","심지후","우진","이강헌","이범준","이태건","임은서","장건","전지호","정동규","정지호","한인수","황현서"],
+    "3-3": ["강준현","강호연","강효준","김영욱","김우찬","김제겸","김지우","김찬섭","김태훈","김현희","박준우","박지민","서지호","신우철","양현준","유태완","이건호","이지환","이찬민","임한","장현명","조준영","최예준","최우윤","최장혁","한래원","함도윤"],
+    "3-4": ["강현우","계준형","김민석","김상현","김태랑","김태윤","김현준","김형균","남수호","류지호","문세도","박동민","박시백","손경빈","이강현","이경준","이재윤","이준민","조가온","조민형","조성빈","진준석","차지헌","차현성","최지명","한승우","함상원"],
+    "3-5": ["강문규","김단우","김민찬","김시우","김종호","박건","박래원","박서준","박성진","박시우","배현서","송도빈","오민재","유연진","이규연","이성희","이준성","이지후","장은찬","전승균","정희범","조윤민","채주원","최정우","하륜재","한최해긴","황지성"]
+  };
+
+  // ===== 상태 =====
+  let currentStudent = null;
+  let brushingRecords = JSON.parse(localStorage.getItem('brushingRecords') || '[]');
+
+  // ===== (ADD) 시트2 웹훅 설정 & 전송 함수 =====
+  const SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbxh5DZUyTk0Yw1uZXruj7ViUh08FO2vQogfIrLNpOQjm56R8ARL5D1kon9tXTLGsnKEjw/exec'
+
+  async function sendToSheet2(payload) {
+    try {
+      // preflight(OPTIONS) 피하려고 text/plain으로 전송
+      await fetch(SHEETS_WEBHOOK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+        body: JSON.stringify(payload)
+      });
+    } catch (e) {
+      console.error('시트 전송 실패', e);
     }
-    window.addEventListener('load', fitToScreen);
-    window.addEventListener('resize', fitToScreen);
+  }
 
-    // ===== 설정값(점심시간) =====
-    const LUNCH_START = { hour: 11, minute: 30 };
-    const LUNCH_END   = { hour: 13, minute: 30 };
+  // ===== 유틸 =====
+  function isWithinLunch(now = new Date()) {
+    const h = now.getHours();
+    const m = now.getMinutes();
+    const start = LUNCH_START.hour * 60 + LUNCH_START.minute;
+    const end   = LUNCH_END.hour   * 60 + LUNCH_END.minute;
+    const cur   = h * 60 + m;
+    return cur >= start && cur <= end;
+  }
+  function saveRecords() {
+    localStorage.setItem('brushingRecords', JSON.stringify(brushingRecords));
+  }
+  function updateCurrentTime() {
+    const now = new Date();
+    const timeString = now.toLocaleString('ko-KR', {
+      year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
+    });
+    const lunchFlag = isWithinLunch(now) ? '🍽️ 점심시간' : '⏰ 점심시간 외';
+    document.getElementById('current-time').textContent = `${lunchFlag} - ${timeString}`;
+  }
+  function updateRecordsList() {
+    const recordsList = document.getElementById('records-list');
+    const today = new Date().toLocaleDateString('ko-KR');
+    const todayRecords = brushingRecords.filter(r => r.date === today);
 
-    // ===== 학생 명렬표 =====
-    const studentList = {
-      // 1학년
-      "1-1": ["강태유","김강율","김강현","김민준","김민호","김범서","김종현","김지섭","김태현","노유하","박서진","박석환","박현빈","송지후","옥채운","이규빈","이기준","이윤건","이인성","이재현","이후현","임라원","임승유","전승민","정교운","조용우","조하랑","한승빈","황지후"],
-      "1-2": ["고기훈","김건우","김대건","김민찬","김서환","김승민","김지훈","김형진","남도현","동진호","박민재","박선우","박태성","방수환","배준영","소정우","송재연","송해준","오준석","유도규","이강호","이삭","이유준","임성준","전완영","정명기","조현준","하준우","한인우","황재욱"],
-      "1-3": ["고현성","곽태오","김도원","김성규","김성탁","김은호","김진욱","나석민","박도현","박성윤","박준용","방지훈","성민기","신유로","양지웅","엄용준","원연호","윤태웅","이승엽","이예찬","이정림","이태혁","전민찬","정세훈","조범준","채민우","탁동현","한승호","한정우","황윤성"],
-      "1-4": ["공범준","권우진","김도훈","김은우","김찬현","김한준","류지훈","모현성","민동휘","박승혁","박용준","배성호","봉건두","신율","안유찬","윤준상","윤태욱","이예준","이준","이지한","이하람","임주원","장민성","장은수","정재원","조민규","채민준","최종윤","한지용","허준혁"],
-      "1-5": ["곽선우","김동하","김민성","김민준","김시후","김태현","남훈희","문진우","문현빈","박재현","박준범","박현석","백서우","안주상","유준서","윤준영","윤진규","이상운","이승유","이영준","이준엽","이지안","장동우","정정윤","정현우","조승민","최우현","최재영","허동혁","허신우"],
-      // 2학년
-      "2-1": ["강서준","곽수민","김나울","김로운","김상율","김선우","김윤찬","김태양","마경진","문찬원","박동후","박민우","배석원","배시우","송해성","안유준","오주환","윤여서","윤예준","이경민","이민준","이은호","이준혁","정효유","조연우","조우형","최명준","최민준","최승현","이찬수"],
-      "2-2": ["김다온","김민준","김민찬","김진하","김태훈","김하성","문준영","박순호","박윤승","박은평","박인서","박정후","송금성","신동현","신정호","염승빈","유지호","이교준","이승현","이정민","이태민","임건형","임동건","임지후","임호영","정영로","정찬영","주석현","한현석"],
-      "2-3": ["강대현","구정윤","김규민","김도현","김동규","김민준","김이도","김태훈","박정연","박정호","박주현","서동훈","신주환","심재희","안민우","엄상준","염승호","오윤택","오준택","용태윤","유지호","이강","이서윤","이석현","이재승","이현석","전도진","최선우","최재민","한윤제"],
-      "2-4": ["강현우","구민혁","김건희","김남우","김민준","김이삭","김현성","노연호","박건우","박예찬","백승민","송시훈","안지민","오건우","용찬중","유준서","윤상호","이승우","이주원","이주현","이현비","이희우","임성진","장은혁","장정우","정우진","정하준","조현욱","차규호","홍준호"],
-      // 3학년
-      "3-1": ["고규영","권도현","김건민","김도윤","김예송","김준엽","김진우","김진호","김하준","명길민","모지성","박주원","박태현","박효민","소재원","송유건","이동훈","이민호","이윤서","이준영","이현성","이효준","임세진","장철진","전성윤","정하진","최건호","추성보"],
-      "3-2": ["강경덕","강신우","강지원","고대영","길하진","김도현","김동현","김민준","김민찬","김성민","김지한","박민형","서준서","선후성","심을지","심지후","우진","이강헌","이범준","이태건","임은서","장건","전지호","정동규","정지호","한인수","황현서"],
-      "3-3": ["강준현","강호연","강효준","김영욱","김우찬","김제겸","김지우","김찬섭","김태훈","김현희","박준우","박지민","서지호","신우철","양현준","유태완","이건호","이지환","이찬민","임한","장현명","조준영","최예준","최우윤","최장혁","한래원","함도윤"],
-      "3-4": ["강현우","계준형","김민석","김상현","김태랑","김태윤","김현준","김형균","남수호","류지호","문세도","박동민","박시백","손경빈","이강현","이경준","이재윤","이준민","조가온","조민형","조성빈","진준석","차지헌","차현성","최지명","한승우","함상원"],
-      "3-5": ["강문규","김단우","김민찬","김시우","김종호","박건","박래원","박서준","박성진","박시우","배현서","송도빈","오민재","유연진","이규연","이성희","이준성","이지후","장은찬","전승균","정희범","조윤민","채주원","최정우","하륜재","한최해긴","황지성"]
+    if (todayRecords.length === 0) {
+      recordsList.innerHTML = '<p style="text-align:center;color:#636e72;">오늘 기록이 없습니다.</p>';
+      return;
+    }
+    recordsList.innerHTML = todayRecords.map(r => `
+      <div class="record-item">
+        <span>
+          ${r.grade}학년 ${r.class}반 ${r.name}
+          ${r.lunchWindow === 'Y'
+            ? '<span class="badge badge-green">점심</span>'
+            : '<span class="badge">외</span>'}
+        </span>
+        <span>${r.time}</span>
+      </div>
+    `).join('');
+  }
+
+  // 학년/반 변경 시 이름 옵션 갱신
+  function updateNameOptions() {
+    const grade = document.getElementById('grade').value;
+    const classNum = document.getElementById('class').value;
+    const nameSelect = document.getElementById('name');
+
+    nameSelect.innerHTML = '<option value="">이름을 선택하세요</option>';
+    if (grade && classNum) {
+      const key = `${grade}-${classNum}`;
+      const names = studentList[key] || [];
+      names.forEach(n => {
+        const opt = document.createElement('option');
+        opt.value = n;
+        opt.textContent = n;
+        nameSelect.appendChild(opt);
+      });
+    }
+  }
+
+  // ===== 동작 =====
+  function registerStudent() {
+    const grade = document.getElementById('grade').value.trim();
+    const classNum = document.getElementById('class').value.trim();
+    const name = document.getElementById('name').value.trim();
+    if (!grade || !classNum || !name) {
+      alert('학년, 반, 이름을 모두 선택해주세요!');
+      return;
+    }
+    currentStudent = { grade, class: classNum, name };
+
+    // 폼 숨기고 카메라 섹션 표시
+    document.getElementById('registration-form').style.display = 'none';
+    document.getElementById('camera-section').style.display = 'flex';
+    document.getElementById('student-info').style.display = 'block';
+
+    document.getElementById('student-display').textContent =
+      `${currentStudent.grade}학년 ${currentStudent.class}반 ${currentStudent.name}`;
+    updateCurrentTime();
+  }
+
+  function openAR() {
+    window.open(
+      'https://www.apoc.day/content/95db481c-d487-46b4-b0f1-a1aa6b484eb7',
+      '_blank',
+      'noopener'
+    );
+  }
+
+  // ===== (REPLACE) 기존 takePhoto를 이 버전으로 교체 =====
+  function takePhoto() {
+    const now = new Date();
+    if (!isWithinLunch(now)) {
+      const proceed = confirm('지금은 점심시간이 아닙니다. 그래도 인증을 기록할까요?');
+      if (!proceed) return;
+    }
+    const record = {
+      ...currentStudent,
+      timestamp: now.toISOString(),
+      date: now.toLocaleDateString('ko-KR'),
+      time: now.toLocaleTimeString('ko-KR'),
+      lunchWindow: isWithinLunch(now) ? 'Y' : 'N'
     };
 
-    // ===== 상태 =====
-    let currentStudent = null;
-    let brushingRecords = JSON.parse(localStorage.getItem('brushingRecords') || '[]');
+    // (1) 로컬 저장
+    brushingRecords.push(record);
+    saveRecords();
 
-    // ===== 유틸 =====
-    function isWithinLunch(now = new Date()) {
-      const h = now.getHours();
-      const m = now.getMinutes();
-      const start = LUNCH_START.hour * 60 + LUNCH_START.minute;
-      const end   = LUNCH_END.hour   * 60 + LUNCH_END.minute;
-      const cur   = h * 60 + m;
-      return cur >= start && cur <= end;
+    // (2) 시트2로 전송
+    // Apps Script 웹앱 코드가 시트2에 [날짜,시간,학년,반,이름,점심여부,timestamp]로 appendRow 하도록 되어있다는 전제
+    sendToSheet2({
+      date: record.date,
+      time: record.time,
+      grade: record.grade,
+      class: record.class,
+      name: record.name,
+      lunchWindow: record.lunchWindow,
+      timestamp: record.timestamp
+    });
+
+    // UI 업데이트
+    document.getElementById('success-message').style.display = 'block';
+    document.getElementById('records-section').style.display = 'block';
+    updateRecordsList();
+
+    setTimeout(() => { goBack(); }, 2800);
+  }
+
+  function goBack() {
+    document.getElementById('camera-section').style.display = 'none';
+    document.getElementById('success-message').style.display = 'none';
+
+    document.getElementById('registration-form').style.display = 'block';
+    document.getElementById('grade').value = '';
+    document.getElementById('class').value = '';
+    document.getElementById('name').innerHTML = '<option value="">이름을 선택하세요</option>';
+
+    currentStudent = null;
+  }
+
+  function exportToExcel() {
+    if (brushingRecords.length === 0) {
+      alert('내보낼 기록이 없습니다.');
+      return;
     }
-    function saveRecords() {
-      localStorage.setItem('brushingRecords', JSON.stringify(brushingRecords));
-    }
-    function updateCurrentTime() {
-      const now = new Date();
-      const timeString = now.toLocaleString('ko-KR', {
-        year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'
-      });
-      const lunchFlag = isWithinLunch(now) ? '🍽️ 점심시간' : '⏰ 점심시간 외';
-      document.getElementById('current-time').textContent = `${lunchFlag} - ${timeString}`;
-    }
-    function updateRecordsList() {
-      const recordsList = document.getElementById('records-list');
-      const today = new Date().toLocaleDateString('ko-KR');
-      const todayRecords = brushingRecords.filter(r => r.date === today);
+    let csvContent = "날짜,시간,학년,반,이름,점심시간여부\n";
+    brushingRecords.forEach(r => {
+      csvContent += `${r.date},${r.time},${r.grade}학년,${r.class}반,${r.name},${r.lunchWindow || ''}\n`;
+    });
+    const blob = new Blob(["\uFEFF" + csvContent], { type:'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `양치기록_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
-      if (todayRecords.length === 0) {
-        recordsList.innerHTML = '<p style="text-align:center;color:#636e72;">오늘 기록이 없습니다.</p>';
-        return;
-      }
-      recordsList.innerHTML = todayRecords.map(r => `
-        <div class="record-item">
-          <span>
-            ${r.grade}학년 ${r.class}반 ${r.name}
-            ${r.lunchWindow === 'Y'
-              ? '<span class="badge badge-green">점심</span>'
-              : '<span class="badge">외</span>'}
-          </span>
-          <span>${r.time}</span>
-        </div>
-      `).join('');
-    }
+  // 이벤트 바인딩
+  document.getElementById('grade').addEventListener('change', updateNameOptions);
+  document.getElementById('class').addEventListener('change', updateNameOptions);
+  document.getElementById('register-btn').addEventListener('click', registerStudent);
+  document.getElementById('open-ar-btn').addEventListener('click', openAR);
+  document.getElementById('complete-btn').addEventListener('click', takePhoto);
+  document.getElementById('back-btn').addEventListener('click', goBack);
+  document.getElementById('export-btn').addEventListener('click', exportToExcel);
 
-    // 학년/반 변경 시 이름 옵션 갱신
-    function updateNameOptions() {
-      const grade = document.getElementById('grade').value;
-      const classNum = document.getElementById('class').value;
-      const nameSelect = document.getElementById('name');
-
-      nameSelect.innerHTML = '<option value="">이름을 선택하세요</option>';
-      if (grade && classNum) {
-        const key = `${grade}-${classNum}`;
-        const names = studentList[key] || [];
-        names.forEach(n => {
-          const opt = document.createElement('option');
-          opt.value = n;
-          opt.textContent = n;
-          nameSelect.appendChild(opt);
-        });
-      }
-    }
-
-    // ===== 동작 =====
-    function registerStudent() {
-      const grade = document.getElementById('grade').value.trim();
-      const classNum = document.getElementById('class').value.trim();
-      const name = document.getElementById('name').value.trim();
-      if (!grade || !classNum || !name) {
-        alert('학년, 반, 이름을 모두 선택해주세요!');
-        return;
-      }
-      currentStudent = { grade, class: classNum, name };
-
-      // 폼 숨기고 카메라 섹션 표시
-      document.getElementById('registration-form').style.display = 'none';
-      document.getElementById('camera-section').style.display = 'flex';
-      document.getElementById('student-info').style.display = 'block';
-
-      document.getElementById('student-display').textContent =
-        `${currentStudent.grade}학년 ${currentStudent.class}반 ${currentStudent.name}`;
-      updateCurrentTime();
-    }
-
-    function openAR() {
-      window.open(
-        'https://www.apoc.day/content/95db481c-d487-46b4-b0f1-a1aa6b484eb7',
-        '_blank',
-        'noopener'
-      );
-    }
-
-    function takePhoto() {
-      const now = new Date();
-      if (!isWithinLunch(now)) {
-        const proceed = confirm('지금은 점심시간이 아닙니다. 그래도 인증을 기록할까요?');
-        if (!proceed) return;
-      }
-      const record = {
-        ...currentStudent,
-        timestamp: now.toISOString(),
-        date: now.toLocaleDateString('ko-KR'),
-        time: now.toLocaleTimeString('ko-KR'),
-        lunchWindow: isWithinLunch(now) ? 'Y' : 'N'
-      };
-      brushingRecords.push(record);
-      saveRecords();
-
-      document.getElementById('success-message').style.display = 'block';
+  // 초기 로드
+  window.addEventListener('load', () => {
+    if (brushingRecords.length > 0) {
       document.getElementById('records-section').style.display = 'block';
       updateRecordsList();
-
-      setTimeout(() => { goBack(); }, 2800);
     }
+  });
+</script>
 
-    function goBack() {
-      document.getElementById('camera-section').style.display = 'none';
-      document.getElementById('success-message').style.display = 'none';
-
-      document.getElementById('registration-form').style.display = 'block';
-      document.getElementById('grade').value = '';
-      document.getElementById('class').value = '';
-      document.getElementById('name').innerHTML = '<option value="">이름을 선택하세요</option>';
-
-      currentStudent = null;
-    }
-
-    function exportToExcel() {
-      if (brushingRecords.length === 0) {
-        alert('내보낼 기록이 없습니다.');
-        return;
-      }
-      let csvContent = "날짜,시간,학년,반,이름,점심시간여부\n";
-      brushingRecords.forEach(r => {
-        csvContent += `${r.date},${r.time},${r.grade}학년,${r.class}반,${r.name},${r.lunchWindow || ''}\n`;
-      });
-      const blob = new Blob(["\uFEFF" + csvContent], { type:'text/csv;charset=utf-8;' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = `양치기록_${new Date().toISOString().slice(0,10)}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    // 이벤트 바인딩
-    document.getElementById('grade').addEventListener('change', updateNameOptions);
-    document.getElementById('class').addEventListener('change', updateNameOptions);
-    document.getElementById('register-btn').addEventListener('click', registerStudent);
-    document.getElementById('open-ar-btn').addEventListener('click', openAR);
-    document.getElementById('complete-btn').addEventListener('click', takePhoto);
-    document.getElementById('back-btn').addEventListener('click', goBack);
-    document.getElementById('export-btn').addEventListener('click', exportToExcel);
-
-    // 초기 로드
-    window.addEventListener('load', () => {
-      if (brushingRecords.length > 0) {
-        document.getElementById('records-section').style.display = 'block';
-        updateRecordsList();
-      }
-    });
-  </script>
+ 
 </body>
 </html>
