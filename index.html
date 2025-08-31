@@ -8,8 +8,8 @@
     :root{
       --APP-W: 1080px;
       --APP-H: 1418px;
-      --bg1: #74b9ff;
-      --bg2: #0984e3;
+      --bg1: #ff9a9e;
+      --bg2: #fecfef;
       --ink: #2d3436;
       --sub: #636e72;
       --ok1: #00b894;
@@ -285,6 +285,7 @@
       // preflight(OPTIONS) 피하려고 text/plain으로 전송
       await fetch(SHEETS_WEBHOOK, {
         method: 'POST',
+        mode: 'no-cors',
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify(payload)
       });
