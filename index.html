@@ -8,8 +8,8 @@
     :root{
       --APP-W: 1080px;
       --APP-H: 1418px;
-      --bg1: #ff9a9e;
-      --bg2: #fecfef;
+      --bg1: #fbc2eb;
+      --bg2: #a6c1ee;
       --ink: #2d3436;
       --sub: #636e72;
       --ok1: #00b894;
@@ -278,7 +278,7 @@
   let brushingRecords = JSON.parse(localStorage.getItem('brushingRecords') || '[]');
 
   // ===== (ADD) 시트2 웹훅 설정 & 전송 함수 =====
-  const SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbxh5DZUyTk0Yw1uZXruj7ViUh08FO2vQogfIrLNpOQjm56R8ARL5D1kon9tXTLGsnKEjw/exec'
+  const SHEETS_WEBHOOK = 'https://script.google.com/a/macros/ajou.ac.kr/s/AKfycbyI8cJ3hvMFRFbOkZuDXHylB23VTkFRvgCrEJqh-QaG2874WCC0yGtwN2iBK6aSEUUMwg/exec'
 
   async function sendToSheet2(payload) {
     try {
