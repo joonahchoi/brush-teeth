@@ -281,16 +281,40 @@
   const SHEETS_WEBHOOK = 'https://script.google.com/a/macros/ajou.ac.kr/s/AKfycbyI8cJ3hvMFRFbOkZuDXHylB23VTkFRvgCrEJqh-QaG2874WCC0yGtwN2iBK6aSEUUMwg/exec'
 
   async function sendToSheet2(payload) {
+  // 1차: fetch + no-cors (응답은 읽지 못해도 전송은 됨)
     try {
-      // preflight(OPTIONS) 피하려고 text/plain으로 전송
       await fetch(SHEETS_WEBHOOK, {
         method: 'POST',
-        mode: 'no-cors',
+        mode: 'no-cors', // 핵심: CORS 헤더 없어도 요청 보냄(응답은 opaque)
         headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
         body: JSON.stringify(payload)
       });
+      return true;
     } catch (e) {
-      console.error('시트 전송 실패', e);
+      console.warn('fetch 전송 실패, sendBeacon 시도', e);
+    }
+  
+    // 2차 백업: sendBeacon (페이지 전환/언로드 상황에도 잘 전송됨)
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([JSON.stringify(payload)], { type: 'text/plain;charset=UTF-8' });
+        const ok = navigator.sendBeacon(SHEETS_WEBHOOK, blob);
+        if (ok) return true;
+      }
+    } catch (e2) {
+      console.error('sendBeacon 전송 실패', e2);
+    }
+  
+    // 3차: 최후의 동기 XHR 백업 (거의 쓸 일 없지만 보수적으로)
+    try {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', SHEETS_WEBHOOK, true);
+      xhr.setRequestHeader('Content-Type', 'text/plain;charset=UTF-8');
+      xhr.send(JSON.stringify(payload));
+      return true; // 성공 가정 (CORS로 상태는 못 읽음)
+    } catch (e3) {
+      console.error('XHR 전송 실패', e3);
+      return false;
     }
   }
 
